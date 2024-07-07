@@ -32,7 +32,7 @@ const passwordSchema = new Schema(
 );
 
 passwordSchema.pre("save", async function (next): Promise<void> {
-  if (!this.isModified(this.password)) {
+  if (!this.isModified("password")) {
     next();
   }
   this.password = await bcrypt.hash(this.password, 10);
