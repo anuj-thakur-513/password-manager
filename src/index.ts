@@ -22,6 +22,7 @@ app.use(express.urlencoded({ extended: false, limit: "50kb" }));
 app.use(morgan("dev"));
 app.use(cookieParser());
 
+// routes are initialized through this
 app.use("/api/v1", v1Router);
 
 connectDb()
