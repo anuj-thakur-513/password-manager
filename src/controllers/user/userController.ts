@@ -6,6 +6,9 @@ import { User } from "../../models/user";
 import { generateTokens } from "../../utils/generateToken";
 import ApiResponse from "../../core/ApiResponse";
 import { AUTH_COOKIE_OPTIONS } from "../../config/cookiesConfig";
+import jwt, { Secret } from "jsonwebtoken";
+import config from "../../config/keys";
+import JwtPayload from "../../types/jwtPayload";
 
 const handleSignupManual = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
@@ -94,4 +97,57 @@ const handleLoginManual = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse({}, "Logged in successfully"));
 });
 
-export { handleSignupManual, handleLoginManual };
+const handleRefreshTokens = asyncHandler(
+  async (req: Request, res: Response) => {
+    const token = req.cookies.refreshToken || req.headers["authorization"];
+
+    if (!token) {
+      throw new ApiError(401, "Unauthorized Request");
+    }
+    let decodedToken: JwtPayload;
+    try {
+      decodedToken = jwt.verify(
+        token,
+        config.jwt.jwtSecret as Secret
+      ) as JwtPayload;
+    } catch (error: any) {
+      throw new ApiError(401, "Invalid Refresh Token");
+    }
+
+    const user = await User.findById(decodedToken.userId).select(
+      "-createdAt -updatedAt -password"
+    );
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+    if (user.refreshToken !== token) {
+      throw new ApiError(401, "Invalid Refresh Token");
+    }
+
+    const { accessToken, refreshToken } = generateTokens(user._id);
+    await User.findOneAndUpdate(
+      {
+        _id: user._id,
+      },
+      { $set: { refreshToken: refreshToken } }
+    );
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, AUTH_COOKIE_OPTIONS)
+      .cookie("refreshToken", refreshToken, AUTH_COOKIE_OPTIONS)
+      .json(
+        new ApiResponse(
+          {
+            updatedAccessToken: accessToken,
+            updatedRefreshToken: refreshToken,
+          },
+          "Tokens regenerated successfully"
+        )
+      );
+  }
+);
+
+// TODO: add signup and login methods via Google oAuth
+
+export { handleSignupManual, handleLoginManual, handleRefreshTokens };
