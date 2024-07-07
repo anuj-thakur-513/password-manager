@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
 import config from "../config/keys";
+import { DB_NAME } from "../constants";
 
 async function connectDB() {
   try {
     console.log(config.mongoDb.dbUri);
     const connection = await mongoose.connect(
-      `${config.mongoDb.dbUri}/password-manager`
+      `${config.mongoDb.dbUri}/${DB_NAME}`
     );
     console.log(`DB connected on host: ${connection.connection.host}`);
   } catch (error) {
