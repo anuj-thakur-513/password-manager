@@ -1,4 +1,4 @@
-import jwt, { Jwt, Secret } from "jsonwebtoken";
+import jwt, { Secret } from "jsonwebtoken";
 import { ObjectId } from "mongoose";
 import config from "../config/keys";
 
@@ -16,4 +16,11 @@ function generateToken(userId: ObjectId, isRefreshToken: boolean) {
   return token;
 }
 
-export default generateToken;
+function generateTokens(userId: ObjectId) {
+  const accessToken: string = generateToken(userId, false);
+  const refreshToken: string = generateToken(userId, true);
+
+  return { accessToken, refreshToken };
+}
+
+export { generateTokens };
