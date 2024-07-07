@@ -55,4 +55,43 @@ const handleSignupManual = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse({}, "User registered successfully"));
 });
 
-export { handleSignupManual };
+const handleLoginManual = asyncHandler(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  if (
+    [email, password].some((field) => field === null || field.trim() === "")
+  ) {
+    throw new ApiError(400, "Email and Password are mandatory fields");
+  }
+
+  if (!EMAIL_REGEX.test(email)) {
+    throw new ApiError(400, "Invalid format of email");
+  }
+
+  const user = await User.findOne({ email: email });
+  if (!user) {
+    throw new ApiError(404, "user not found");
+  }
+
+  const passwordMatched = await user.isPasswordCorrect(password);
+  if (!passwordMatched) {
+    throw new ApiError(401, "Password Incorrect");
+  }
+
+  const { accessToken, refreshToken } = generateTokens(user._id);
+  await User.findOneAndUpdate(
+    { _id: user._id },
+    {
+      $set: {
+        refreshToken: refreshToken,
+      },
+    }
+  );
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken)
+    .cookie("refreshToken", refreshToken)
+    .json(new ApiResponse({}, "Logged in successfully"));
+});
+
+export { handleSignupManual, handleLoginManual };

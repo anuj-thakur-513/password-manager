@@ -1,7 +1,8 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
+import UserSchema from "../types/userSchema";
 
-const userSchema = new Schema(
+const userSchema = new Schema<UserSchema>(
   {
     name: {
       type: String,
@@ -38,5 +39,11 @@ userSchema.pre("save", async function (next): Promise<void> {
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
+
+userSchema.methods.isPasswordCorrect = async function (
+  inputPassword: string
+): Promise<any> {
+  return await bcrypt.compare(inputPassword, this.password);
+};
 
 export const User = mongoose.model("user", userSchema);
