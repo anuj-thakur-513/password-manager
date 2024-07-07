@@ -1,8 +1,11 @@
 import jwt, { Secret } from "jsonwebtoken";
-import { ObjectId } from "mongoose";
+import mongoose from "mongoose";
 import config from "../config/keys";
 
-function generateToken(userId: ObjectId, isRefreshToken: boolean) {
+function generateToken(
+  userId: mongoose.Types.ObjectId,
+  isRefreshToken: boolean
+) {
   let token: string;
   if (isRefreshToken) {
     token = jwt.sign({ userId }, config.jwt.jwtSecret as Secret, {
@@ -16,7 +19,7 @@ function generateToken(userId: ObjectId, isRefreshToken: boolean) {
   return token;
 }
 
-function generateTokens(userId: ObjectId) {
+function generateTokens(userId: mongoose.Types.ObjectId) {
   const accessToken: string = generateToken(userId, false);
   const refreshToken: string = generateToken(userId, true);
 
