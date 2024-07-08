@@ -19,49 +19,63 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response) => {
     websiteName = websiteUrl.split(".")[1];
   }
 
-  const existingData = await Password.findOne({ websiteName: websiteName });
+  const existingData = await Password.findOne({
+    websiteName: websiteName,
+    email: email,
+    username: username,
+  });
   if (existingData) {
-    if (username === existingData.username) {
-      const updatedData = await Password.updateOne(
+    if (
+      (username && username === existingData.username) ||
+      (email && email === existingData.email)
+    ) {
+      await Password.updateOne(
         { websiteName: websiteName },
         {
           $set: {
             password: password,
           },
         }
-      ).select("-createdAt -updatedAt");
-    }
+      );
 
-    return res.status(200).json(
-      new ApiResponse(
-        {
-          websiteName: websiteName,
-          websiteUrl: websiteUrl || "",
-          username: username || "",
-          email: email || "",
-          password: password,
-        },
-        "Password updated successfully"
-      )
-    );
+      const updatedData = await Password.findById(existingData._id);
+
+      return res.status(200).json(
+        new ApiResponse(
+          {
+            websiteName: updatedData && updatedData.websiteName,
+            websiteUrl: (updatedData && updatedData.websiteUrl) || "",
+            username: (updatedData && updatedData.username) || "",
+            email: (updatedData && updatedData.email) || "",
+            password: updatedData && updatedData.password,
+          },
+          "Password updated successfully"
+        )
+      );
+    }
   }
 
   const data = await Password.create({
     user: user?._id,
-    websiteUrl: websiteUrl,
+    websiteUrl: websiteUrl === "" ? null : websiteUrl,
     websiteName: websiteName,
-    username: username,
-    email: email,
+    username: username === "" ? null : username,
+    email: email === "" ? null : email,
     password: password,
   });
 
-  return res.status(201).json({
-    websiteName: websiteName,
-    websiteUrl: websiteUrl || "",
-    username: username || "",
-    email: email || "",
-    password: password,
-  });
+  return res.status(201).json(
+    new ApiResponse(
+      {
+        websiteName: data.websiteName,
+        websiteUrl: data.websiteUrl || "",
+        username: data.username || "",
+        email: data.email || "",
+        password: data.password,
+      },
+      "Password added successfully"
+    )
+  );
 });
 
 export { handleAddPassword };
