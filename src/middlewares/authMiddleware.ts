@@ -24,7 +24,6 @@ const verifyToken = asyncHandler(
         token,
         config.jwt.jwtSecret as Secret
       ) as JwtPayload;
-      console.log(decodedToken);
       const user = await User.findById(decodedToken.userId).select(
         "-password -refreshToken -createdAt -updatedAt"
       );

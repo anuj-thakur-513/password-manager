@@ -25,7 +25,6 @@ const handleSignupManual = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const existingUser = await User.findOne({ email: email });
-  console.log(`existingUser: ${existingUser}`);
   if (existingUser) {
     throw new ApiError(409, "Email already in use");
   }

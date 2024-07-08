@@ -78,4 +78,16 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response) => {
   );
 });
 
-export { handleAddPassword };
+const handleGetAllPasswords = asyncHandler(
+  async (req: Request, res: Response) => {
+    const user = req.user;
+    const passwords = await Password.find({ user: user?._id })
+      .sort({ updatedAt: -1 })
+      .select("-_id -createdAt -updatedAt -__v -user");
+    return res
+      .status(200)
+      .json(new ApiResponse(passwords, "Passwords fetched successfully"));
+  }
+);
+
+export { handleAddPassword, handleGetAllPasswords };
