@@ -90,4 +90,15 @@ const handleGetAllPasswords = asyncHandler(
   }
 );
 
-export { handleAddPassword, handleGetAllPasswords };
+const handleGetPassword = asyncHandler(async (req: Request, res: Response) => {
+  const website = req.params.website;
+  const passwords = await Password.find({
+    websiteName: { $regex: website, $options: "i" },
+  })
+    .sort({ updatedAt: -1 })
+    .select("-_id -__v -user -createdAt -updatedAt");
+
+  return res.status(200).json(new ApiResponse(passwords));
+});
+
+export { handleAddPassword, handleGetAllPasswords, handleGetPassword };
