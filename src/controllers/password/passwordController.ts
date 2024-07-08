@@ -101,4 +101,26 @@ const handleGetPassword = asyncHandler(async (req: Request, res: Response) => {
   return res.status(200).json(new ApiResponse(passwords));
 });
 
-export { handleAddPassword, handleGetAllPasswords, handleGetPassword };
+const handleDeletePassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { websiteName, username, email } = req.body;
+    const user = req.user;
+    await Password.findOneAndDelete({
+      websiteName: websiteName,
+      username: username,
+      email: email,
+      user: user?._id,
+    });
+
+    return res
+      .status(200)
+      .json(new ApiResponse({}, "Password deleted successfully"));
+  }
+);
+
+export {
+  handleAddPassword,
+  handleGetAllPasswords,
+  handleGetPassword,
+  handleDeletePassword,
+};
