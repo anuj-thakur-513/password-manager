@@ -1,5 +1,5 @@
 class ApiResponse {
-  constructor(public data: Object, public message: string = "Success") {}
+  constructor(public data: Object | null, public message: string = "Success") {}
 }
 
 export default ApiResponse;

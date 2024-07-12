@@ -1,8 +1,10 @@
-import { Request, Response } from "express";
+import e, { Request, Response } from "express";
 import asyncHandler from "../../utils/asyncHandler";
 import ApiError from "../../core/ApiError";
 import { Password } from "../../models/passwords";
 import ApiResponse from "../../core/ApiResponse";
+import { getCache, setCache } from "../../services/redis";
+import PasswordType from "../../types/password";
 
 const handleAddPassword = asyncHandler(async (req: Request, res: Response) => {
   const user = req.user;
@@ -81,9 +83,17 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response) => {
 const handleGetAllPasswords = asyncHandler(
   async (req: Request, res: Response) => {
     const user = req.user;
-    const passwords = await Password.find({ user: user?._id })
-      .sort({ updatedAt: -1 })
-      .select("-_id -createdAt -updatedAt -__v -user");
+    const cacheKey = user?._id.toString() || "";
+    let passwords: PasswordType[] | null = await getCache(cacheKey);
+    if (!passwords) {
+      passwords = await Password.find({ user: user?._id })
+        .sort({ updatedAt: -1 })
+        .select("-_id -createdAt -updatedAt -__v -user")
+        .lean();
+
+      if (passwords && passwords.length > 0)
+        await setCache(cacheKey, passwords, 60 * 60 * 1000);
+    }
     return res
       .status(200)
       .json(new ApiResponse(passwords, "Passwords fetched successfully"));
