@@ -149,4 +149,13 @@ const handleRefreshTokens = asyncHandler(
 
 // TODO: add signup and login methods via Google oAuth
 
-export { handleSignupManual, handleLoginManual, handleRefreshTokens };
+const handleCheckLoginStatus = (req: Request, res: Response) => {
+  return res.status(200).json(new ApiResponse(null, "User is Logged In"));
+};
+
+export {
+  handleSignupManual,
+  handleLoginManual,
+  handleRefreshTokens,
+  handleCheckLoginStatus,
+};
