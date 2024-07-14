@@ -21,6 +21,9 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response) => {
     websiteName = websiteUrl.split(".")[1];
   }
 
+  const cacheKey = user?._id.toString() || "";
+  const cacheData = await getCache(cacheKey);
+
   const existingData = await Password.findOne({
     websiteName: websiteName,
     email: email,
@@ -41,6 +44,16 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response) => {
       );
 
       const updatedData = await Password.findById(existingData._id);
+      if (cacheData) {
+        const updatedCacheData = cacheData.map((entry) => {
+          if (entry.websiteName === websiteName) {
+            return { ...entry, password: password };
+          }
+          return entry;
+        });
+
+        await setCache(cacheKey, updatedCacheData, 60 * 60 * 1000);
+      }
 
       return res.status(200).json(
         new ApiResponse(
@@ -65,6 +78,18 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response) => {
     email: email === "" ? null : email,
     password: password,
   });
+
+  if (cacheData) {
+    cacheData.push({
+      websiteName: websiteName,
+      websiteUrl: websiteUrl === "" ? undefined : websiteUrl,
+      email: email === "" ? undefined : email,
+      username: username === "" ? undefined : username,
+      password: password,
+    });
+
+    await setCache(cacheKey, cacheData, 60 * 60 * 1000);
+  }
 
   return res.status(201).json(
     new ApiResponse(
