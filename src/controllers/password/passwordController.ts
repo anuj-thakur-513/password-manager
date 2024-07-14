@@ -88,7 +88,7 @@ const handleGetAllPasswords = asyncHandler(
     if (!passwords) {
       passwords = await Password.find({ user: user?._id })
         .sort({ updatedAt: -1 })
-        .select("-_id -createdAt -updatedAt -__v -user")
+        .select("-_id -__v -user -createdAt -updatedAt")
         .lean();
 
       if (passwords && passwords.length > 0)
@@ -102,13 +102,25 @@ const handleGetAllPasswords = asyncHandler(
 
 const handleGetPassword = asyncHandler(async (req: Request, res: Response) => {
   const website = req.params.website;
-  const passwords = await Password.find({
-    websiteName: { $regex: website, $options: "i" },
-  })
-    .sort({ updatedAt: -1 })
-    .select("-_id -__v -user -createdAt -updatedAt");
+  const cacheKey = req.user?._id.toString() || "";
+  let passwords: PasswordType[] | null = await getCache(cacheKey);
+  let password: PasswordType | null = null;
+  if (!passwords) {
+    password = await Password.find({
+      websiteName: { $regex: website, $options: "i" },
+    })
+      .sort({ updatedAt: -1 })
+      .select("-_id -__v -user -createdAt -updatedAt")
+      .lean();
+  } else {
+    password =
+      passwords.find((val) => new RegExp(website, "i").test(val.websiteName)) ||
+      null;
+  }
 
-  return res.status(200).json(new ApiResponse(passwords));
+  return res
+    .status(200)
+    .json(new ApiResponse(password, "Password fetched successfully"));
 });
 
 const handleDeletePassword = asyncHandler(
