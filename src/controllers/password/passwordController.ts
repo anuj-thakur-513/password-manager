@@ -133,6 +133,17 @@ const handleDeletePassword = asyncHandler(
       email: email,
       user: user?._id,
     });
+    const cacheKey = user?._id.toString() || "";
+    let passwords: PasswordType[] | null = await getCache(cacheKey);
+    if (passwords) {
+      passwords = passwords.filter((val) => {
+        val.email !== email ||
+          val.username !== username ||
+          val.websiteName !== websiteName;
+      });
+
+      await setCache(cacheKey, passwords, 60 * 60 * 1000);
+    }
 
     return res
       .status(200)
