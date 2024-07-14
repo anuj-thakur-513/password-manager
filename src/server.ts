@@ -19,7 +19,7 @@ app.use(cookieParser());
 
 app.get("/", (req: Request, res: Response) => {
   res.send(
-    "<h1>Welcome to Password-Manager API</h1><br><h2>Visit <a href='https://anuj-thakur-513.github.io//' target='_blank'>https://anuj-thakur-513.github.io/URL-Shortener/</a> to get more info on API calls available</h2>"
+    "<h1>Welcome to Password-Manager API</h1><br><h2>Visit <a href='https://anuj-thakur-513.github.io/password-manager/' target='_blank'>https://anuj-thakur-513.github.io/password-manager/</a> to get more info about the project</h2>"
   );
 });
 
