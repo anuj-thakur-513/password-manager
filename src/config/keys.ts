@@ -15,6 +15,13 @@ const config = {
     redisUser: process.env.REDIS_USER,
     redisPassword: process.env.REDIS_PASSWORD,
   },
+  googleOAuth: {
+    clientId: process.env.GOOGLE_OAUTH_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+  },
+  session: {
+    secret: process.env.SESSION_SECRET,
+  },
 };
 
 export default config;

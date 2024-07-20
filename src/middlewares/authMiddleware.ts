@@ -11,6 +11,10 @@ import { AUTH_COOKIE_OPTIONS } from "../config/cookiesConfig";
 
 const verifyToken = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
+    // check google auth
+    if (req.isAuthenticated()) {
+      next();
+    }
     const token: string =
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer", "");

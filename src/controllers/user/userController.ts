@@ -1,4 +1,5 @@
-import { Request, Response } from "express";
+import { request, Request, Response } from "express";
+
 import asyncHandler from "../../utils/asyncHandler";
 import ApiError from "../../core/ApiError";
 import { EMAIL_REGEX } from "../../constants";
@@ -147,15 +148,38 @@ const handleRefreshTokens = asyncHandler(
   }
 );
 
-// TODO: add signup and login methods via Google oAuth
-
 const handleCheckLoginStatus = (req: Request, res: Response) => {
   return res.status(200).json(new ApiResponse(null, "User is Logged In"));
 };
+
+const handleLogoutGoogleAuth = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (req.isAuthenticated()) {
+      req.logout((err) => {
+        if (err) {
+          throw new ApiError(404, "Failed to logout google user");
+        }
+        req.session.destroy((err) => {
+          res
+            .status(200)
+            .clearCookie("connect.sid")
+            .json(new ApiResponse({}, "Logged out google auth successfully"));
+        });
+      });
+    } else {
+      return res
+        .clearCookie("accessToken")
+        .clearCookie("refreshToken")
+        .status(200)
+        .json(new ApiResponse({}, "Logged out successfully"));
+    }
+  }
+);
 
 export {
   handleSignupManual,
   handleLoginManual,
   handleRefreshTokens,
   handleCheckLoginStatus,
+  handleLogoutGoogleAuth,
 };
