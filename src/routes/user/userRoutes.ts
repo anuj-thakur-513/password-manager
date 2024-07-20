@@ -2,7 +2,7 @@ import { Request, Response, Router } from "express";
 import {
   handleCheckLoginStatus,
   handleLoginManual,
-  handleLogoutGoogleAuth,
+  handleLogout,
   handleRefreshTokens,
   handleSignupManual,
 } from "../../controllers/user/userController";
@@ -28,7 +28,7 @@ userRouter.get(
     failureRedirect: "http://localhost:5173",
   })
 );
-userRouter.get("/logout", handleLogoutGoogleAuth);
+userRouter.get("/logout", handleLogout);
 
 userRouter.get("/refresh-tokens", handleRefreshTokens);
 userRouter.get("/checkAuth", [verifyToken, handleCheckLoginStatus]);
