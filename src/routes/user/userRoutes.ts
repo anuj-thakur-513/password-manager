@@ -4,6 +4,7 @@ import {
   handleLoginManual,
   handleLogout,
   handleRefreshTokens,
+  handleGoogleAuthCallback,
   handleSignupManual,
 } from "../../controllers/user/userController";
 import { rateLimiter } from "../../middlewares/rateLimiter";
@@ -23,13 +24,16 @@ userRouter.get(
 );
 userRouter.get(
   "/google/auth/callback",
-  passport.authenticate("google", {
-    successRedirect: "http://localhost:5173",
-    failureRedirect: "http://localhost:5173",
-  })
+  passport.authenticate(
+    "google",
+    {
+      successRedirect: "http://localhost:5173",
+      failureRedirect: "http://localhost:5173",
+    },
+    handleGoogleAuthCallback
+  )
 );
 userRouter.get("/logout", handleLogout);
-
 userRouter.get("/refresh-tokens", handleRefreshTokens);
 userRouter.get("/checkAuth", [verifyToken, handleCheckLoginStatus]);
 

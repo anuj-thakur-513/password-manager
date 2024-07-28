@@ -5,6 +5,7 @@ const GoogleStrategy = passportGoogle.Strategy;
 import { User } from "../models/user";
 import SerializedUser from "../types/serializedUser";
 import config from "./keys";
+import { generateTokens } from "../utils/generateToken";
 
 passport.use(
   new GoogleStrategy(
@@ -21,9 +22,11 @@ passport.use(
             googleId: profile.id,
             name: profile.displayName,
             email: profile.emails ? profile.emails[0].value : null,
-            refreshToken: refreshToken,
           });
         }
+        const { accessToken, refreshToken } = generateTokens(user._id);
+        user.refreshToken = refreshToken;
+        await user.save();
         const serializedUser: SerializedUser = {
           id: user._id.toString(),
           profile: profile,

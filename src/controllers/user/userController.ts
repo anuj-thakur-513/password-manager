@@ -152,9 +152,18 @@ const handleCheckLoginStatus = (req: Request, res: Response) => {
   return res.status(200).json(new ApiResponse(null, "User is Logged In"));
 };
 
+const handleGoogleAuthCallback = asyncHandler(
+  async (req: Request, res: Response) => {
+    console.log(req.user);
+    // const user = await User.findOne({});
+    // const { accessToken, refreshToken } = generateTokens();
+  }
+);
+
 const handleLogout = asyncHandler(async (req: Request, res: Response) => {
   if (req.isAuthenticated()) {
     req.logout((err) => {
+      console.log("logging out");
       if (err) {
         throw new ApiError(500, "Failed to logout google user");
       }
@@ -162,10 +171,6 @@ const handleLogout = asyncHandler(async (req: Request, res: Response) => {
         if (err) {
           throw new ApiError(500, "Failed to logout google user");
         }
-        res.clearCookie("connect.sid", { path: "/" });
-        return res
-          .status(200)
-          .json(new ApiResponse({}, "Logged out google auth successfully"));
       });
     });
   } else {
@@ -182,5 +187,6 @@ export {
   handleLoginManual,
   handleRefreshTokens,
   handleCheckLoginStatus,
+  handleGoogleAuthCallback,
   handleLogout,
 };
