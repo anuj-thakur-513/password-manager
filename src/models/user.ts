@@ -3,46 +3,44 @@ import bcrypt from "bcrypt";
 import UserSchema from "../types/userSchema";
 
 const userSchema = new Schema<UserSchema>(
-  {
-    name: {
-      type: String,
-      required: true,
+    {
+        name: {
+            type: String,
+            required: true,
+        },
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            lowercase: true,
+            trim: true,
+            index: true,
+        },
+        password: {
+            type: String,
+        },
+        googleId: {
+            type: String,
+        },
+        refreshToken: {
+            type: String,
+        },
     },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-      index: true,
-    },
-    password: {
-      type: String,
-    },
-    googleId: {
-      type: String,
-    },
-    refreshToken: {
-      type: String,
-    },
-  },
-  {
-    timestamps: true,
-  }
+    {
+        timestamps: true,
+    }
 );
 
 userSchema.pre("save", async function (next): Promise<void> {
-  if (!this.isModified("password")) {
+    if (!this.isModified("password")) {
+        next();
+    }
+    this.password = await bcrypt.hash(this.password, 10);
     next();
-  }
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
 });
 
-userSchema.methods.isPasswordCorrect = async function (
-  inputPassword: string
-): Promise<any> {
-  return await bcrypt.compare(inputPassword, this.password);
+userSchema.methods.isPasswordCorrect = async function (inputPassword: string): Promise<any> {
+    return await bcrypt.compare(inputPassword, this.password);
 };
 
 export const User = mongoose.model("user", userSchema);
