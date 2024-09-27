@@ -1,20 +1,18 @@
 import { Router } from "express";
 import {
-    handleCheckLoginStatus,
-    handleLoginManual,
-    handleLogout,
-    handleRefreshTokens,
-    handleSignupManual,
+  handleCheckLoginStatus,
+  handleLogin,
+  handleLogout,
+  handleSignup,
 } from "../../controllers/user/userController";
 import { rateLimiter } from "../../middlewares/rateLimiter";
 import verifyToken from "../../middlewares/authMiddleware";
 
 const userRouter = Router();
 
-userRouter.post("/manual-signup", [rateLimiter, handleSignupManual]);
-userRouter.post("/manual-login", handleLoginManual);
+userRouter.post("/signup", [rateLimiter, handleSignup]);
+userRouter.post("/login", handleLogin);
 userRouter.get("/logout", handleLogout);
-userRouter.get("/refresh-tokens", handleRefreshTokens);
 userRouter.get("/checkAuth", [verifyToken, handleCheckLoginStatus]);
 
 export default userRouter;
