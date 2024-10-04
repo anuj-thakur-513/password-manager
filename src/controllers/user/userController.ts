@@ -9,9 +9,9 @@ import { generateTokens } from "../../utils/generateToken";
 import ApiResponse from "../../core/ApiResponse";
 import { AUTH_COOKIE_OPTIONS } from "../../config/cookiesConfig";
 import generateOtp from "../../utils/generateOtp";
-import { saveOtp, verifyOtp } from "../../repository/otp";
-import sendEmail from "../../utils/sendEmail";
+import { saveOtp, verifyOtp } from "../../repository/otpRepository";
 import Redis from "../../services/Redis";
+const redis = Redis.getInstance();
 
 const handleSignup = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { name, email, password } = req.body;
@@ -123,10 +123,14 @@ const handleGenerateOtp = asyncHandler(async (req: Request, res: Response, next:
     if (!otpSaved) {
         return next(new AppError(500, "Error while generating OTP, please try again later"));
     }
-
     // send OTP over mail to the user -> when scaling up the application this should be handled by a queue
-    const redis = Redis.getInstance();
-    await redis.addToQueue("otp_email", { email: user?.email, name: user?.name, otp: otp });
+    await redis.addToQueue("otp_email", {
+        _id: user?._id,
+        email: user?.email,
+        name: user?.name,
+        otp: otp,
+        isVerificationEmail: req.body.isVerificationEmail,
+    });
     return res.status(200).json(new ApiResponse({}, "OTP generated successfully"));
 });
 

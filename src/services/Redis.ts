@@ -4,6 +4,7 @@ import config from "../config/keys";
 class Redis {
     private static instance: Redis;
     private redisClient: RedisClientType;
+    private consumerClient: RedisClientType;
 
     private constructor() {
         this.redisClient = createClient({
@@ -11,7 +12,13 @@ class Redis {
             password: config.redis.password,
             username: config.redis.user,
         });
+        this.consumerClient = createClient({
+            url: config.redis.url,
+            password: config.redis.password,
+            username: config.redis.user,
+        });
         this.redisClient.connect();
+        this.consumerClient.connect();
     }
 
     public static getInstance() {
@@ -30,7 +37,7 @@ class Redis {
     }
 
     public async consumeFromQueue(key: string) {
-        const value = await this.redisClient.brPop(key, 0);
+        const value = await this.consumerClient.brPop(`password_manager:${key}`, 0);
         if (!value) {
             return null;
         }
@@ -39,6 +46,7 @@ class Redis {
 
     public async disconnect() {
         await this.redisClient.quit();
+        await this.consumerClient.quit();
     }
 }
 
