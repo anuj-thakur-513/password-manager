@@ -19,8 +19,9 @@ const userSchema = new Schema<UserSchema>(
     password: {
       type: String,
     },
-    googleId: {
-      type: String,
+    isVerified: {
+      type: Boolean,
+      default: false,
     },
     refreshToken: {
       type: String,
@@ -39,8 +40,12 @@ userSchema.pre("save", async function (next): Promise<void> {
   next();
 });
 
-userSchema.methods.isPasswordCorrect = async function (inputPassword: string): Promise<any> {
+userSchema.methods.isPasswordCorrect = async function (
+  inputPassword: string
+): Promise<any> {
   return await bcrypt.compare(inputPassword, this.password);
 };
 
-export const User = mongoose.model("user", userSchema);
+const User = mongoose.model("user", userSchema);
+
+export default User;

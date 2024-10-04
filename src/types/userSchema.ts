@@ -5,7 +5,7 @@ interface UserSchema extends Document {
   name: string;
   email: string;
   password: string;
-  googleId?: string;
+  isVerified: boolean;
   refreshToken?: string;
   isPasswordCorrect(inputPassword: string): Promise<boolean>;
 }

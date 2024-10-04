@@ -56,14 +56,6 @@ Change the `.env.example` file to `.env` and change the variable names according
 
 `BASE_URL=''`
 
-`REDIS_HOST=''`
-
-`REDIS_PORT=''`
-
-`REDIS_USER=''`
-
-`REDIS_PASSWORD=''`
-
 ## Project Directory Structure
 
 ```
@@ -94,7 +86,8 @@ Change the `.env.example` file to `.env` and change the variable names according
 │   │   └── version1.ts
 │   ├── services
 │   │   ├── db.ts
-│   │   └── redis.ts
+│   │   └── Redis.ts
+│   │   └── Mailer.ts
 │   ├── types
 │   │   ├── asyncFunction.ts
 │   │   ├── express.d.ts
@@ -128,8 +121,6 @@ Node.js
 Express.js
 
 MongoDB
-
-Redis
 
 ## License
 
