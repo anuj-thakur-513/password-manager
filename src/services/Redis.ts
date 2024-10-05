@@ -11,14 +11,22 @@ class Redis {
             url: config.redis.url,
             password: config.redis.password,
             username: config.redis.user,
+            socket: {
+                keepAlive: 3000, // doesn't close the connection after inactivity
+            },
         });
         this.consumerClient = createClient({
             url: config.redis.url,
             password: config.redis.password,
             username: config.redis.user,
+            socket: {
+                keepAlive: 3000, // doesn't close the connection after inactivity
+            },
         });
         this.redisClient.connect();
         this.consumerClient.connect();
+        this.redisClient.on("error", (err) => console.log("Redis Client Error", err));
+        this.consumerClient.on("error", (err) => console.log("Redis Consumer Client Error", err));
     }
 
     public static getInstance() {

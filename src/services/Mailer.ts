@@ -41,7 +41,10 @@ class Mailer {
                     }
                 );
             } else {
-                renderedHtml = path.resolve(__dirname, "../../templates/email/passwordReset.ejs");
+                renderedHtml = await ejs.renderFile(
+                    path.resolve(__dirname, "../../templates/email/passwordReset.ejs"),
+                    { otp: otp }
+                );
             }
             const res = await this.resendClient.emails.send({
                 from: "Password Manager <onboarding@resend.dev>",
