@@ -9,7 +9,7 @@ const sendEmails = async (redisInstance: Redis) => {
             continue;
         }
         try {
-            mailer.sendOtp(
+            await mailer.sendOtp(
                 current._id,
                 current.email,
                 "Account Verification",

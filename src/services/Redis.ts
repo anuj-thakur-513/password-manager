@@ -11,17 +11,13 @@ class Redis {
             url: config.redis.url,
             password: config.redis.password,
             username: config.redis.user,
-            socket: {
-                keepAlive: 3000, // doesn't close the connection after inactivity
-            },
+            pingInterval: 30000,
         });
         this.consumerClient = createClient({
             url: config.redis.url,
             password: config.redis.password,
             username: config.redis.user,
-            socket: {
-                keepAlive: 3000, // doesn't close the connection after inactivity
-            },
+            pingInterval: 30000,
         });
         this.redisClient.connect();
         this.consumerClient.connect();
