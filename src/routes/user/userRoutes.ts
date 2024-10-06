@@ -1,14 +1,14 @@
 import { Router } from "express";
 import {
-  handleCheckLoginStatus,
-  handleLogin,
-  handleLogout,
-  handleSignup,
-  handleGenerateOtp,
-  handleResetOtpGeneration,
-  handleVerifyOtp,
-  handleResetPassword,
-  handleForgotPassword,
+    handleCheckLoginStatus,
+    handleLogin,
+    handleLogout,
+    handleSignup,
+    handleGenerateOtp,
+    handleResetOtpGeneration,
+    handleVerifyOtp,
+    handleResetPassword,
+    handleForgotPassword,
 } from "../../controllers/user/userController";
 import { rateLimiter } from "../../middlewares/rateLimiter";
 import verifyToken from "../../middlewares/authMiddleware";

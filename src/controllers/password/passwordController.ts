@@ -7,20 +7,20 @@ import ApiResponse from "../../core/ApiResponse";
 const handleAddPassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
     const { username, email, password } = req.body;
-    const websiteUrl: string = req.body.websiteUrl;
-    let websiteName: string = req.body.websiteName;
+    const platformUrl: string = req.body.platformUrl;
+    let platformName: string = req.body.platformName;
     if (!username && !email) {
         return next(new AppError(400, "Username or email is required"));
     }
-    if (!websiteUrl && !websiteName) {
-        return next(new AppError(400, "Website URL or Website Name is required"));
+    if (!platformUrl && !platformName) {
+        return next(new AppError(400, "Platform URL or Platform Name is required"));
     }
-    if (!websiteName) {
-        websiteName = websiteUrl.split(".")[1];
+    if (!platformName) {
+        platformName = platformUrl.split(".")[1];
     }
 
     const existingData = await Password.findOne({
-        websiteName: websiteName,
+        platformName: platformName,
         email: email,
         username: username,
     });
@@ -30,7 +30,7 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response, next:
             (email && email === existingData.email)
         ) {
             const data = await Password.updateOne(
-                { websiteName: websiteName },
+                { platformName: platformName },
                 {
                     $set: {
                         password: password,
@@ -47,8 +47,8 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response, next:
 
     const data = await Password.create({
         user: user?._id,
-        websiteUrl: websiteUrl === "" ? null : websiteUrl,
-        websiteName: websiteName,
+        platformUrl: platformUrl === "" ? null : platformUrl,
+        platformName: platformName,
         username: username === "" ? null : username,
         email: email === "" ? null : email,
         password: password,
@@ -57,8 +57,8 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response, next:
     return res.status(201).json(
         new ApiResponse(
             {
-                websiteName: data.websiteName,
-                websiteUrl: data.websiteUrl || "",
+                platformName: data.platformName,
+                platformUrl: data.platformUrl || "",
                 username: data.username || "",
                 email: data.email || "",
                 password: data.password,
@@ -80,10 +80,10 @@ const handleGetAllPasswords = asyncHandler(async (req: Request, res: Response) =
 });
 
 const handleGetPassword = asyncHandler(async (req: Request, res: Response) => {
-    const website = req.params.website;
+    const platform = req.params.platform;
 
     const password = await Password.find({
-        websiteName: { $regex: website, $options: "i" },
+        platformName: { $regex: platform, $options: "i" },
     })
         .sort({ updatedAt: -1 })
         .select("-_id -__v -user -createdAt -updatedAt")
@@ -93,10 +93,10 @@ const handleGetPassword = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const handleDeletePassword = asyncHandler(async (req: Request, res: Response) => {
-    const { websiteName, username, email } = req.body;
+    const { platformName, username, email } = req.body;
     const user = req.user;
     await Password.findOneAndDelete({
-        websiteName: websiteName,
+        platformName: platformName,
         username: username,
         email: email,
         user: user?._id,

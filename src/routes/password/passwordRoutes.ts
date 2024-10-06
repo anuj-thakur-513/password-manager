@@ -1,10 +1,10 @@
 import { Router } from "express";
 import verifyToken from "../../middlewares/authMiddleware";
 import {
-  handleAddPassword,
-  handleDeletePassword,
-  handleGetAllPasswords,
-  handleGetPassword,
+    handleAddPassword,
+    handleDeletePassword,
+    handleGetAllPasswords,
+    handleGetPassword,
 } from "../../controllers/password/passwordController";
 
 const passwordRouter = Router();

@@ -7,10 +7,10 @@ const passwordSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: "user",
         },
-        websiteUrl: {
+        platformUrl: {
             type: String,
         },
-        websiteName: {
+        platformName: {
             type: String,
             lowercase: true,
             trim: true,
@@ -18,6 +18,7 @@ const passwordSchema = new Schema(
         },
         username: {
             type: String,
+            trim: true,
         },
         email: {
             type: String,
