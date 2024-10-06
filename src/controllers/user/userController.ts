@@ -137,6 +137,33 @@ const handleResetPassword = asyncHandler(
   }
 );
 
+const handleForgotPassword = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email, otp, newPassword } = req.body;
+    if ([email, otp, newPassword].some((field) => field === null || field.trim() === "")) {
+      return next(new AppError(400, "Email, OTP & New Password are mandatory fields"));
+    }
+
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return next(new AppError(404, "user not found"));
+    }
+
+    const otpRecord = await Otp.findOne({ userId: user?._id }).sort({ updatedAt: "desc" });
+    if (!otpRecord) {
+      return next(new AppError(401, "Invalid OTP"));
+    }
+
+    const isOtpCorrect = await verifyOtp(otpRecord, otp);
+    if (!isOtpCorrect) {
+      return next(new AppError(401, "OTP Verification Failed"));
+    }
+    user.password = newPassword;
+    await user.save();
+    return res.status(200).json(new ApiResponse({}, "Password reset successfully"));
+  }
+);
+
 const handleLogout = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   return res
     .clearCookie("accessToken")
@@ -212,18 +239,11 @@ const handleVerifyOtp = asyncHandler(async (req: Request, res: Response, next: N
   if (!otpRecord) {
     return next(new AppError(401, "Invalid OTP"));
   }
-  const curr = new Date();
-  const diff = curr.getTime() - otpRecord?.createdAt.getTime();
-  const diffInMinutes = Math.floor(diff / 1000 / 60);
-  if (diffInMinutes > 10) {
-    return next(new AppError(401, "OTP expired"));
-  }
 
   const isOtpCorrect = await verifyOtp(otpRecord, enteredOtp);
   if (!isOtpCorrect) {
-    return next(new AppError(401, "Incorrect OTP"));
+    return next(new AppError(401, "OTP Verification Failed"));
   }
-  await Otp.updateOne({ _id: otpRecord._id }, { $set: { isActive: false } });
   await User.updateOne({ _id: user?._id }, { $set: { isVerified: true } });
 
   return res.status(200).json(new ApiResponse({}, "OTP verified successfully"));
@@ -238,4 +258,5 @@ export {
   handleResetOtpGeneration,
   handleVerifyOtp,
   handleResetPassword,
+  handleForgotPassword,
 };
