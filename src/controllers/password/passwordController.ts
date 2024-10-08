@@ -3,6 +3,8 @@ import asyncHandler from "../../utils/asyncHandler";
 import AppError from "../../core/AppError";
 import { Password } from "../../models/passwords";
 import ApiResponse from "../../core/ApiResponse";
+import { encrypt, decrypt } from "../../utils/crypto";
+import decryptedPassword from "../../types/decryptedPassword";
 
 const handleAddPassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
@@ -15,9 +17,16 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response, next:
     if (!platformUrl && !platformName) {
         return next(new AppError(400, "Platform URL or Platform Name is required"));
     }
+
+    if (!password) {
+        return next(new AppError(400, "Password is required"));
+    }
+
     if (!platformName) {
         platformName = platformUrl.split(".")[1];
     }
+
+    const encryptedPassword = encrypt(password);
 
     const existingData = await Password.findOne({
         platformName: platformName,
@@ -33,7 +42,7 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response, next:
                 { platformName: platformName },
                 {
                     $set: {
-                        password: password,
+                        password: encryptedPassword,
                     },
                 },
                 {
@@ -51,7 +60,7 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response, next:
         platformName: platformName,
         username: username === "" ? null : username,
         email: email === "" ? null : email,
-        password: password,
+        password: encryptedPassword,
     });
 
     return res.status(201).json(
@@ -61,7 +70,7 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response, next:
                 platformUrl: data.platformUrl || "",
                 username: data.username || "",
                 email: data.email || "",
-                password: data.password,
+                password: password,
             },
             "Password added successfully"
         )
@@ -76,7 +85,19 @@ const handleGetAllPasswords = asyncHandler(async (req: Request, res: Response) =
         .select("-_id -__v -user -createdAt -updatedAt")
         .lean();
 
-    return res.status(200).json(new ApiResponse(passwords, "Passwords fetched successfully"));
+    const data: decryptedPassword[] = [];
+
+    passwords.forEach((password) => {
+        if (password.password) {
+            const decryptedPassword = decrypt(password.password);
+            data.push({
+                ...password,
+                password: decryptedPassword,
+            });
+        }
+    });
+
+    return res.status(200).json(new ApiResponse(data, "Passwords fetched successfully"));
 });
 
 const handleGetPassword = asyncHandler(async (req: Request, res: Response) => {

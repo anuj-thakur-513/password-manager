@@ -183,7 +183,6 @@ const handleGenerateOtp = asyncHandler(async (req: Request, res: Response, next:
     if (!otpSaved) {
         return next(new AppError(500, "Error while generating OTP, please try again later"));
     }
-    // send OTP over mail to the user -> when scaling up the application this should be handled by a queue
     await redis.addToQueue("otp_email", {
         _id: user?._id,
         email: user?.email,

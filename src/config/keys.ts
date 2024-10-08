@@ -16,6 +16,9 @@ const config = {
         password: process.env.REDIS_PASSWORD,
         user: process.env.REDIS_USER,
     },
+    crypto: {
+        encryptionKey: process.env.CRYPTO_ENCRYPTION_KEY || "encryptionKey",
+    },
 };
 
 export default config;
