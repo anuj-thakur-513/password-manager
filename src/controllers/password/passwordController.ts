@@ -77,12 +77,56 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response, next:
     );
 });
 
+const handleUpdatePassword = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+        const user = req.user;
+        const { platformName, platformUrl, username, email, password } = req.body;
+        if (!platformName && !platformUrl) {
+            return next(new AppError(400, "Platform Name or Platform URL is required"));
+        }
+        if (!username && !email) {
+            return next(new AppError(400, "Username or email is required"));
+        }
+        if (!password) {
+            return next(new AppError(400, "Password is required"));
+        }
+
+        const dbPassword = await Password.findOne({
+            user: user?._id,
+            ...(platformName && { platformName }),
+            ...(platformUrl && { platformUrl }),
+            ...(username && { username }),
+            ...(email && { email }),
+        });
+        if (!dbPassword) {
+            return next(new AppError(404, "Password not found"));
+        }
+
+        const encryptedPassword = encrypt(password);
+        dbPassword.password = encryptedPassword;
+        await dbPassword.save();
+
+        return res.status(200).json(
+            new ApiResponse(
+                {
+                    platformName: platformName,
+                    platformUrl: platformUrl || "",
+                    username: username || "",
+                    email: email || "",
+                    password: password,
+                },
+                "Password updated successfully"
+            )
+        );
+    }
+);
+
 const handleGetAllPasswords = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user;
 
     const passwords = await Password.find({ user: user?._id })
         .sort({ updatedAt: -1 })
-        .select("-_id -__v -user -createdAt -updatedAt")
+        .select("-__v -user -createdAt -updatedAt")
         .lean();
 
     const data: decryptedPassword[] = [];
@@ -113,17 +157,21 @@ const handleGetPassword = asyncHandler(async (req: Request, res: Response) => {
     return res.status(200).json(new ApiResponse(password, "Password fetched successfully"));
 });
 
-const handleDeletePassword = asyncHandler(async (req: Request, res: Response) => {
-    const { platformName, username, email } = req.body;
-    const user = req.user;
-    await Password.findOneAndDelete({
-        platformName: platformName,
-        username: username,
-        email: email,
-        user: user?._id,
-    });
+const handleDeletePassword = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+        const { passwordId } = req.params;
+        if (!passwordId) {
+            return next(new AppError(400, "Password ID is required"));
+        }
+        await Password.findByIdAndDelete(passwordId);
+        return res.status(200).json(new ApiResponse({}, "Password deleted successfully"));
+    }
+);
 
-    return res.status(200).json(new ApiResponse({}, "Password deleted successfully"));
-});
-
-export { handleAddPassword, handleGetAllPasswords, handleGetPassword, handleDeletePassword };
+export {
+    handleAddPassword,
+    handleUpdatePassword,
+    handleGetAllPasswords,
+    handleGetPassword,
+    handleDeletePassword,
+};

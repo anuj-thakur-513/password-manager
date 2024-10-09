@@ -2,6 +2,7 @@ import { Router } from "express";
 import verifyToken from "../../middlewares/authMiddleware";
 import {
     handleAddPassword,
+    handleUpdatePassword,
     handleDeletePassword,
     handleGetAllPasswords,
     handleGetPassword,
@@ -9,9 +10,13 @@ import {
 
 const passwordRouter = Router();
 
-passwordRouter.post("/add", [verifyToken, handleAddPassword]);
 passwordRouter.get("/all", [verifyToken, handleGetAllPasswords]);
 passwordRouter.get("/:website", [verifyToken, handleGetPassword]);
-passwordRouter.delete("/delete", [verifyToken, handleDeletePassword]);
+
+passwordRouter.post("/add", [verifyToken, handleAddPassword]);
+
+passwordRouter.patch("/update", [verifyToken, handleUpdatePassword]);
+
+passwordRouter.delete("/delete/:passwordId", [verifyToken, handleDeletePassword]);
 
 export default passwordRouter;
