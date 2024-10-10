@@ -147,14 +147,25 @@ const handleGetAllPasswords = asyncHandler(async (req: Request, res: Response) =
 const handleGetPassword = asyncHandler(async (req: Request, res: Response) => {
     const platform = req.params.platform;
 
-    const password = await Password.find({
+    const passwords = await Password.find({
         platformName: { $regex: platform, $options: "i" },
     })
         .sort({ updatedAt: -1 })
-        .select("-_id -__v -user -createdAt -updatedAt")
+        .select("-__v -user -createdAt -updatedAt")
         .lean();
 
-    return res.status(200).json(new ApiResponse(password, "Password fetched successfully"));
+    const data: decryptedPassword[] = [];
+    passwords.forEach((password) => {
+        if (password.password) {
+            const decryptedPassword = decrypt(password.password);
+            data.push({
+                ...password,
+                password: decryptedPassword,
+            });
+        }
+    });
+
+    return res.status(200).json(new ApiResponse(data, "Password fetched successfully"));
 });
 
 const handleDeletePassword = asyncHandler(
