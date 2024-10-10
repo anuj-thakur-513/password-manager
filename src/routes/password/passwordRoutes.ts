@@ -7,11 +7,12 @@ import {
     handleGetAllPasswords,
     handleGetPassword,
 } from "../../controllers/password/passwordController";
+import paginate from "../../middlewares/pagination";
 
 const passwordRouter = Router();
 
-passwordRouter.get("/all", [verifyToken, handleGetAllPasswords]);
-passwordRouter.get("/:website", [verifyToken, handleGetPassword]);
+passwordRouter.get("/all", [verifyToken, paginate, handleGetAllPasswords]);
+passwordRouter.get("/:platform", [verifyToken, handleGetPassword]);
 
 passwordRouter.post("/add", [verifyToken, handleAddPassword]);
 

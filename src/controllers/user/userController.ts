@@ -108,65 +108,57 @@ const handleCheckLoginStatus = (req: Request, res: Response) => {
     );
 };
 
-const handleResetPassword = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction) => {
-        const { email, oldPassword, newPassword } = req.body;
-        if (
-            [email, oldPassword, newPassword].some((field) => field === null || field.trim() === "")
-        ) {
-            return next(
-                new AppError(400, "Email, Old Password & New Password are mandatory fields")
-            );
-        }
-
-        if (!EMAIL_REGEX.test(email)) {
-            return next(new AppError(400, "Invalid format of email"));
-        }
-        if (oldPassword === newPassword) {
-            return next(new AppError(400, "New password cannot be same as old password"));
-        }
-
-        const user = await User.findOne({ email: email });
-        if (!user) {
-            return next(new AppError(404, "user not found"));
-        }
-        const passwordMatched = await user.isPasswordCorrect(oldPassword);
-        if (!passwordMatched) {
-            return next(new AppError(401, "Old Password Incorrect"));
-        }
-
-        user.password = newPassword;
-        await user.save();
-        return res.status(200).json(new ApiResponse({}, "Password reset successfully"));
+const handleResetPassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { email, oldPassword, newPassword } = req.body;
+    if ([email, oldPassword, newPassword].some((field) => field === null || field.trim() === "")) {
+        return next(new AppError(400, "Email, Old Password & New Password are mandatory fields"));
     }
-);
 
-const handleForgotPassword = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction) => {
-        const { email, otp, newPassword } = req.body;
-        if ([email, otp, newPassword].some((field) => field === null || field.trim() === "")) {
-            return next(new AppError(400, "Email, OTP & New Password are mandatory fields"));
-        }
-
-        const user = await User.findOne({ email: email });
-        if (!user) {
-            return next(new AppError(404, "user not found"));
-        }
-
-        const otpRecord = await Otp.findOne({ userId: user?._id }).sort({ updatedAt: "desc" });
-        if (!otpRecord) {
-            return next(new AppError(401, "Invalid OTP"));
-        }
-
-        const isOtpCorrect = await verifyOtp(otpRecord, otp);
-        if (!isOtpCorrect) {
-            return next(new AppError(401, "OTP Verification Failed"));
-        }
-        user.password = newPassword;
-        await user.save();
-        return res.status(200).json(new ApiResponse({}, "Password reset successfully"));
+    if (!EMAIL_REGEX.test(email)) {
+        return next(new AppError(400, "Invalid format of email"));
     }
-);
+    if (oldPassword === newPassword) {
+        return next(new AppError(400, "New password cannot be same as old password"));
+    }
+
+    const user = await User.findOne({ email: email });
+    if (!user) {
+        return next(new AppError(404, "user not found"));
+    }
+    const passwordMatched = await user.isPasswordCorrect(oldPassword);
+    if (!passwordMatched) {
+        return next(new AppError(401, "Old Password Incorrect"));
+    }
+
+    user.password = newPassword;
+    await user.save();
+    return res.status(200).json(new ApiResponse({}, "Password reset successfully"));
+});
+
+const handleForgotPassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { email, otp, newPassword } = req.body;
+    if ([email, otp, newPassword].some((field) => field === null || field.trim() === "")) {
+        return next(new AppError(400, "Email, OTP & New Password are mandatory fields"));
+    }
+
+    const user = await User.findOne({ email: email });
+    if (!user) {
+        return next(new AppError(404, "user not found"));
+    }
+
+    const otpRecord = await Otp.findOne({ userId: user?._id }).sort({ updatedAt: "desc" });
+    if (!otpRecord) {
+        return next(new AppError(401, "Invalid OTP"));
+    }
+
+    const isOtpCorrect = await verifyOtp(otpRecord, otp);
+    if (!isOtpCorrect) {
+        return next(new AppError(401, "OTP Verification Failed"));
+    }
+    user.password = newPassword;
+    await user.save();
+    return res.status(200).json(new ApiResponse({}, "Password reset successfully"));
+});
 
 const handleLogout = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     return res
@@ -193,35 +185,33 @@ const handleGenerateOtp = asyncHandler(async (req: Request, res: Response, next:
     return res.status(200).json(new ApiResponse({}, "OTP generated successfully"));
 });
 
-const handleResetOtpGeneration = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction) => {
-        const { email } = req.body;
-        if (!email) {
-            return next(new AppError(400, "Email is required"));
-        }
-        if (!EMAIL_REGEX.test(email)) {
-            return next(new AppError(400, "Invalid format of email"));
-        }
-        const user = await User.findOne({ email: email });
-        if (!user) {
-            return next(new AppError(404, "user not found"));
-        }
-        const otp = generateOtp();
-        const otpSaved = await saveOtp(otp, user?._id);
-        if (!otpSaved) {
-            return next(new AppError(500, "Error while generating OTP, please try again later"));
-        }
-        // send OTP over mail to the user -> when scaling up the application this should be handled by a queue
-        await redis.addToQueue("otp_email", {
-            _id: user?._id,
-            email: user?.email,
-            name: user?.name,
-            otp: otp,
-            isVerificationEmail: false,
-        });
-        return res.status(200).json(new ApiResponse({}, "OTP generated successfully"));
+const handleResetOtpGeneration = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.body;
+    if (!email) {
+        return next(new AppError(400, "Email is required"));
     }
-);
+    if (!EMAIL_REGEX.test(email)) {
+        return next(new AppError(400, "Invalid format of email"));
+    }
+    const user = await User.findOne({ email: email });
+    if (!user) {
+        return next(new AppError(404, "user not found"));
+    }
+    const otp = generateOtp();
+    const otpSaved = await saveOtp(otp, user?._id);
+    if (!otpSaved) {
+        return next(new AppError(500, "Error while generating OTP, please try again later"));
+    }
+    // send OTP over mail to the user -> when scaling up the application this should be handled by a queue
+    await redis.addToQueue("otp_email", {
+        _id: user?._id,
+        email: user?.email,
+        name: user?.name,
+        otp: otp,
+        isVerificationEmail: false,
+    });
+    return res.status(200).json(new ApiResponse({}, "OTP generated successfully"));
+});
 
 const handleVerifyOtp = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { enteredOtp, email } = req.body;

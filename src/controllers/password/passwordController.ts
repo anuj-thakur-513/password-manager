@@ -34,10 +34,7 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response, next:
         username: username,
     });
     if (existingData) {
-        if (
-            (username && username === existingData.username) ||
-            (email && email === existingData.email)
-        ) {
+        if ((username && username === existingData.username) || (email && email === existingData.email)) {
             const data = await Password.updateOne(
                 { platformName: platformName },
                 {
@@ -77,61 +74,74 @@ const handleAddPassword = asyncHandler(async (req: Request, res: Response, next:
     );
 });
 
-const handleUpdatePassword = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction) => {
-        const user = req.user;
-        const { platformName, platformUrl, username, email, password } = req.body;
-        if (!platformName && !platformUrl) {
-            return next(new AppError(400, "Platform Name or Platform URL is required"));
-        }
-        if (!username && !email) {
-            return next(new AppError(400, "Username or email is required"));
-        }
-        if (!password) {
-            return next(new AppError(400, "Password is required"));
-        }
-
-        const dbPassword = await Password.findOne({
-            user: user?._id,
-            ...(platformName && { platformName }),
-            ...(platformUrl && { platformUrl }),
-            ...(username && { username }),
-            ...(email && { email }),
-        });
-        if (!dbPassword) {
-            return next(new AppError(404, "Password not found"));
-        }
-
-        const encryptedPassword = encrypt(password);
-        dbPassword.password = encryptedPassword;
-        await dbPassword.save();
-
-        return res.status(200).json(
-            new ApiResponse(
-                {
-                    platformName: platformName,
-                    platformUrl: platformUrl || "",
-                    username: username || "",
-                    email: email || "",
-                    password: password,
-                },
-                "Password updated successfully"
-            )
-        );
-    }
-);
-
-const handleGetAllPasswords = asyncHandler(async (req: Request, res: Response) => {
+const handleUpdatePassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
+    const { platformName, platformUrl, username, email, password } = req.body;
+    if (!platformName && !platformUrl) {
+        return next(new AppError(400, "Platform Name or Platform URL is required"));
+    }
+    if (!username && !email) {
+        return next(new AppError(400, "Username or email is required"));
+    }
+    if (!password) {
+        return next(new AppError(400, "Password is required"));
+    }
+
+    const dbPassword = await Password.findOne({
+        user: user?._id,
+        ...(platformName && { platformName }),
+        ...(platformUrl && { platformUrl }),
+        ...(username && { username }),
+        ...(email && { email }),
+    });
+    if (!dbPassword) {
+        return next(new AppError(404, "Password not found"));
+    }
+
+    const encryptedPassword = encrypt(password);
+    dbPassword.password = encryptedPassword;
+    await dbPassword.save();
+
+    return res.status(200).json(
+        new ApiResponse(
+            {
+                platformName: platformName,
+                platformUrl: platformUrl || "",
+                username: username || "",
+                email: email || "",
+                password: password,
+            },
+            "Password updated successfully"
+        )
+    );
+});
+
+const handleGetAllPasswords = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const { limit, page } = req.query;
+    if (!limit && !page) {
+        return next(new AppError(400, "Skip, limit & page are required"));
+    }
 
     const passwords = await Password.find({ user: user?._id })
         .sort({ updatedAt: -1 })
         .select("-__v -user -createdAt -updatedAt")
         .lean();
 
-    const data: decryptedPassword[] = [];
+    // pagination
+    const totalPasswords = passwords.length;
+    const limitInt = parseInt(limit as string) || 10;
+    const pageInt = parseInt(page as string) || 1;
+    const totalPages = Math.ceil(totalPasswords / limitInt);
+    if (pageInt > totalPages) {
+        return next(new AppError(400, "Page number is greater than total pages"));
+    }
+    const start = (pageInt - 1) * limitInt;
+    const end = start + limitInt;
+    const passwordsSlice = passwords.slice(start, end);
 
-    passwords.forEach((password) => {
+    const data: decryptedPassword[] = [];
+    passwordsSlice.forEach((password) => {
         if (password.password) {
             const decryptedPassword = decrypt(password.password);
             data.push({
@@ -141,7 +151,7 @@ const handleGetAllPasswords = asyncHandler(async (req: Request, res: Response) =
         }
     });
 
-    return res.status(200).json(new ApiResponse(data, "Passwords fetched successfully"));
+    return res.status(200).json(new ApiResponse({ data, totalPages }, "Passwords fetched successfully"));
 });
 
 const handleGetPassword = asyncHandler(async (req: Request, res: Response) => {
@@ -168,16 +178,14 @@ const handleGetPassword = asyncHandler(async (req: Request, res: Response) => {
     return res.status(200).json(new ApiResponse(data, "Password fetched successfully"));
 });
 
-const handleDeletePassword = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction) => {
-        const { passwordId } = req.params;
-        if (!passwordId) {
-            return next(new AppError(400, "Password ID is required"));
-        }
-        await Password.findByIdAndDelete(passwordId);
-        return res.status(200).json(new ApiResponse({}, "Password deleted successfully"));
+const handleDeletePassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { passwordId } = req.params;
+    if (!passwordId) {
+        return next(new AppError(400, "Password ID is required"));
     }
-);
+    await Password.findByIdAndDelete(passwordId);
+    return res.status(200).json(new ApiResponse({}, "Password deleted successfully"));
+});
 
 export {
     handleAddPassword,
