@@ -180,7 +180,7 @@ const handleGenerateOtp = asyncHandler(async (req: Request, res: Response, next:
         email: user?.email,
         name: user?.name,
         otp: otp,
-        isVerificationEmail: req.body.isVerificationEmail,
+        isVerificationEmail: true,
     });
     return res.status(200).json(new ApiResponse({}, "OTP generated successfully"));
 });
