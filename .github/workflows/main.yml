@@ -14,11 +14,11 @@ jobs:
             - name: Set up SSH
               uses: webfactory/ssh-agent@v0.5.3
               with:
-                  ssh-private-key: ${{secrets.EC2_SSH_KEY}}
+                  ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
             - name: Deploy to EC2
               run: |
-                  ssh -o StrictHostKeyChecking=no ec2-user@${{secrets.EC2_IP}} << 'EOF'
+                  ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_IP }} << 'EOF'
                     cd password-manager
                     git stash
                     git pull origin main
