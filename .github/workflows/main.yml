@@ -22,6 +22,7 @@ jobs:
                     cd password-manager
                     git stash
                     git pull origin main
+                    export PATH=$PATH:/usr/local/bin
                     git stash pop
                     npm install
                     npm run build-ts
