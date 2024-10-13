@@ -47,7 +47,7 @@ class Mailer {
                 );
             }
             const res = await this.resendClient.emails.send({
-                from: "Password Manager <onboarding@resend.dev>",
+                from: "Password Manager <noreply@password-manager.anuj-thakur.com>",
                 to: userEmail || "onboarding@resend.dev",
                 subject: subject,
                 html: renderedHtml,
