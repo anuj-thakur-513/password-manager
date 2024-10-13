@@ -25,5 +25,5 @@ jobs:
                     git stash pop
                     npm install
                     npm run build-ts
-                    sudo pm2 reload backend
+                    pm2 reload backend
                   EOF
