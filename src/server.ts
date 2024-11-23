@@ -12,14 +12,14 @@ import Redis from "./services/Redis";
 const app = express();
 const redis = Redis.getInstance();
 redis.ping().then((res) => {
-    console.log(`Redis Connected PING:${res}`);
+  console.log(`Redis Connected PING:${res}`);
 });
 
 app.use(
-    cors({
-        origin: true,
-        credentials: true,
-    })
+  cors({
+    origin: true,
+    credentials: true,
+  })
 );
 
 app.use(express.json({ limit: "50kb" }));
@@ -30,11 +30,11 @@ app.use(cookieParser());
 app.use(errorHandler);
 
 app.get("/", (req: Request, res: Response) => {
-    res.send("<h1>API is up and working fine</h1>");
+  res.send("<h1>API is up and working fine</h1>");
 });
 
 // setImmediate to send emails in the background
-setImmediate(() => sendEmails(redis));
+sendEmails(redis);
 
 // routes are initialized through this
 app.use("/api/v1", v1Router);
