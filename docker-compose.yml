@@ -1,0 +1,18 @@
+services:
+  passwordmanager-backend:
+    build: .
+    ports:
+      - 5000:5000
+    env_file:
+      - .env
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+    networks:
+      - passwordmanager-network
+
+networks:
+  passwordmanager-network:
+    driver: bridge

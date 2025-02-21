@@ -31,9 +31,6 @@ coverage
 # nyc test coverage
 .nyc_output
 
-# TS Build Output
-/dist
-
 # Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 
@@ -92,7 +89,6 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
 
 # Gatsby files
 .cache/

@@ -1,0 +1,21 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const userController_1 = require("../../controllers/user/userController");
+const rateLimiter_1 = require("../../middlewares/rateLimiter");
+const authMiddleware_1 = __importDefault(require("../../middlewares/authMiddleware"));
+const userRouter = (0, express_1.Router)();
+userRouter.post("/signup", [rateLimiter_1.rateLimiter, userController_1.handleSignup]);
+userRouter.post("/login", userController_1.handleLogin);
+userRouter.post("/generateOtp", [rateLimiter_1.rateLimiter, authMiddleware_1.default, userController_1.handleGenerateOtp]);
+userRouter.post("/generate-reset-otp", [rateLimiter_1.rateLimiter, userController_1.handleResetOtpGeneration]);
+userRouter.patch("/resetPassword", [rateLimiter_1.rateLimiter, authMiddleware_1.default, userController_1.handleResetPassword]);
+userRouter.patch("/reset-otp-password", [rateLimiter_1.rateLimiter, userController_1.handleForgotPassword]);
+userRouter.patch("/verifyOtp", [rateLimiter_1.rateLimiter, authMiddleware_1.default, userController_1.handleVerifyOtp]);
+userRouter.patch("/verify-reset-otp", [rateLimiter_1.rateLimiter, userController_1.handleVerifyOtp]);
+userRouter.get("/logout", userController_1.handleLogout);
+userRouter.get("/checkAuth", [authMiddleware_1.default, userController_1.handleCheckLoginStatus]);
+exports.default = userRouter;
